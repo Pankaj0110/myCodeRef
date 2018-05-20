@@ -1,0 +1,57 @@
+import { Component, OnInit } from '@angular/core';
+import { FormArray, FormControl, Form, FormBuilder, FormGroup, Validators, ValidatorFn, AbstractControl } from '@angular/forms'
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  testForm : FormGroup;
+
+  constructor(private fb: FormBuilder) {
+
+  }
+  ngOnInit(){
+    console.log(typeof(this.testForm))
+    this.createForm();
+    console.log(this.testForm)
+  }
+
+  private createForm() {
+    this.testForm = this.fb.group({
+      names: this.fb.array([ this.createControl()])
+    })
+  }
+
+  private createControl() : FormGroup {
+    return this.fb.group([new FormControl('',[Validators.required, this.uniqueValue()])]);
+  }
+
+  public addName() {
+    let addedName = this.createControl();
+    (this.testForm.controls['names'] as FormArray).push(addedName)
+    console.log(this.testForm);
+  }
+
+ uniqueValue() : ValidatorFn{
+   return (control : AbstractControl) : {[Key : string]: any} => {
+     let selectedValues = [];
+     if(this.testForm && (this.testForm.controls['names'] as FormArray).length > 0 && (this.testForm.controls['names'] as FormArray).controls){
+        (this.testForm.controls['names'] as FormArray).controls.forEach((grp) => {
+          selectedValues.push(grp['controls'][0].value);
+        })        
+      }
+      console.log(selectedValues)
+      if(selectedValues.length > 1){
+       selectedValues.splice(selectedValues.indexOf(control.value),1) 
+       console.log(selectedValues)
+        if(selectedValues.indexOf(control.value) > -1){          
+            return {"forbidden":true};
+        }
+      }    
+      return null;
+   }
+  }
+
+}
